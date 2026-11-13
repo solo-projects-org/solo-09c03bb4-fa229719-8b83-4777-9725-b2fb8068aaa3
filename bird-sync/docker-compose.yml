@@ -1,0 +1,54 @@
+services:
+  station-alpha:
+    build: .
+    image: bird-sync-station:latest
+    container_name: bird-alpha
+    environment:
+      STATION_ID: alpha
+      DB_PATH: /data/station.db
+      CSV_PATH: /data/seed/sample_counts.csv
+      PEER_URL: http://station-bravo:8000
+    ports:
+      - "8001:8000"
+    volumes:
+      - alpha-data:/data
+      - ./data/seed:/data/seed:ro
+    restart: unless-stopped
+
+  station-bravo:
+    build: .
+    image: bird-sync-station:latest
+    container_name: bird-bravo
+    environment:
+      STATION_ID: bravo
+      DB_PATH: /data/station.db
+      CSV_PATH: /data/seed/sample_counts.csv
+      PEER_URL: http://station-alpha:8000
+    ports:
+      - "8002:8000"
+    volumes:
+      - bravo-data:/data
+      - ./data/seed:/data/seed:ro
+    restart: unless-stopped
+
+  # 第三个离线营地：用于演示“裁定后才收到未见并发更正 -> 重新列为冲突”
+  station-charlie:
+    build: .
+    image: bird-sync-station:latest
+    container_name: bird-charlie
+    environment:
+      STATION_ID: charlie
+      DB_PATH: /data/station.db
+      CSV_PATH: /data/seed/sample_counts.csv
+      PEER_URL: http://station-alpha:8000
+    ports:
+      - "8003:8000"
+    volumes:
+      - charlie-data:/data
+      - ./data/seed:/data/seed:ro
+    restart: unless-stopped
+
+volumes:
+  alpha-data:
+  bravo-data:
+  charlie-data:
